@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  bot-app:
+    environment:
+      - TZ=$TIME_ZONE
+    container_name: bot-app
+    restart: unless-stopped
+    build:
+      context: ./app
+    volumes:
+      - ./app/src:/usr/src
+
+  bot-ib:
+    environment:
+      - TZ=$TIME_ZONE
+      - IBEAM_ACCOUNT=$IB_USER
+      - IBEAM_PASSWORD=$IB_PASSWORD
+    container_name: bot-ib
+    image: voyz/ibeam
+    restart: unless-stopped
