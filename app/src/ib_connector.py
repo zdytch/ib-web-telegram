@@ -17,8 +17,8 @@ async def get_positions() -> list[Position]:
 
             response = await client.get(f'{IB_URL_BASE}/portfolio/DU1692823/positions')
 
-            if response.status_code == codes.OK:
-                positions = _positions_from_ib(response.json())
+        if response.status_code == codes.OK:
+            positions = _positions_from_ib(response.json())
 
     except HTTPError as error:
         print(error)
