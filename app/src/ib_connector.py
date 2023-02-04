@@ -1,8 +1,7 @@
 from httpx import AsyncClient, HTTPError, codes
 from schemas import Position
 from decimal import Decimal
-
-IB_URL_BASE = 'https://bot-ib:5000/v1/api'
+from settings import IB_URL_BASE
 
 
 async def get_positions() -> list[Position]:
