@@ -4,6 +4,7 @@ services:
   bot-app:
     environment:
       - TZ=$TIME_ZONE
+      - TELEGRAM_TOKEN=$APP_TELEGRAM_TOKEN
     container_name: bot-app
     restart: unless-stopped
     build:
