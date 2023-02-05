@@ -1,0 +1,7 @@
+=== <b> {{ order.description }} </b> ===
+<b>Symbol:</b> {{ order.symbol }}
+<b>Side:</b> {{ order.side }}
+<b>Size:</b> {{ order.size }}
+<b>Fill Size:</b> {{ order.fill_size }}
+<b>Type:</b> {{ order.type }}
+{% if order.price %}<b>Price:</b> {{ order.price }} {% endif %}
