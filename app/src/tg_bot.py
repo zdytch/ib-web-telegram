@@ -4,8 +4,10 @@ from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    ParseMode,
 )
 from ib_connector import get_positions
+from templates import render_position
 from schemas import Position
 from datetime import datetime, timedelta
 from settings import TELEGRAM_TOKEN
@@ -13,7 +15,7 @@ from settings import TELEGRAM_TOKEN
 if not TELEGRAM_TOKEN:
     exit()
 
-bot = Bot(token=TELEGRAM_TOKEN)
+bot = Bot(token=TELEGRAM_TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher(bot)
 
 # TODO: Use db
@@ -33,7 +35,7 @@ async def start(message: Message):
 @dp.message_handler(commands=['positions'])
 async def position_list(message: Message):
     if positions := await _get_position_list():
-        kb = _position_keyboard(positions)
+        kb = _position_list_keyboard(positions)
 
         await message.answer(f'Total Positions: {len(positions)}', reply_markup=kb)
 
@@ -49,7 +51,7 @@ async def unknown_message(message: Message):
 @dp.callback_query_handler()
 async def inline_callback(callback: CallbackQuery):
     if position := await _get_position(callback.data):
-        await callback.message.answer(f'{position}')
+        await callback.message.answer(render_position(position))
 
 
 async def _get_position_list() -> list[Position]:
@@ -72,7 +74,7 @@ async def _get_position(description: str) -> Position | None:
     return next((p for p in positions if p.description == description), None)
 
 
-def _position_keyboard(positions: list[Position]) -> InlineKeyboardMarkup:
+def _position_list_keyboard(positions: list[Position]) -> InlineKeyboardMarkup:
     buttons = [
         InlineKeyboardButton(p.description, callback_data=p.description)
         for p in positions

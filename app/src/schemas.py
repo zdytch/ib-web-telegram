@@ -7,8 +7,8 @@ class Position(BaseModel):
     size: int
     market_price: Decimal
     market_value: Decimal
-    realized_pnl: Decimal
     unrealized_pnl: Decimal
+    realized_pnl: Decimal
     pnl: Decimal = Decimal('0.0')
 
     @root_validator()
