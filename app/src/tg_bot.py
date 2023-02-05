@@ -2,6 +2,8 @@ from aiogram import Bot, Dispatcher, executor
 from aiogram.types import (
     Message,
     CallbackQuery,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ParseMode,
@@ -27,20 +29,25 @@ def run_tg_bot() -> None:
     executor.start_polling(dp, skip_updates=True)  # on_startup
 
 
-@dp.message_handler(commands=['start', 'help'])
+@dp.message_handler(commands=['start'])
 async def start(message: Message):
-    await message.answer("Start!")
+    kb = _main_menu_keyboard()
+    await message.answer(f'Welcome!', reply_markup=kb)
 
 
 @dp.message_handler(commands=['positions'])
-async def position_list(message: Message):
+async def positions(message: Message):
     if positions := await _get_position_list():
         kb = _position_list_keyboard(positions)
-
         await message.answer(f'Total Positions: {len(positions)}', reply_markup=kb)
 
     else:
         await message.answer('No positions')
+
+
+@dp.message_handler(commands=['orders'])
+async def orders(message: Message):
+    await message.answer('Not implemented')
 
 
 @dp.message_handler()
@@ -72,6 +79,13 @@ async def _get_position(description: str) -> Position | None:
     positions = await _get_position_list()
 
     return next((p for p in positions if p.description == description), None)
+
+
+def _main_menu_keyboard() -> ReplyKeyboardMarkup:
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.row(KeyboardButton('/positions'), KeyboardButton('/orders'))
+
+    return keyboard
 
 
 def _position_list_keyboard(positions: list[Position]) -> InlineKeyboardMarkup:
