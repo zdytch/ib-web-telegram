@@ -75,11 +75,13 @@ async def _get_position(description: str) -> Position | None:
 
 
 def _position_list_keyboard(positions: list[Position]) -> InlineKeyboardMarkup:
-    buttons = [
-        InlineKeyboardButton(p.description, callback_data=p.description)
-        for p in positions
-    ]
-    keyboard = InlineKeyboardMarkup(2, resize_keyboard=True)
-    keyboard.add(*buttons)
+    keyboard = InlineKeyboardMarkup(3, resize_keyboard=True)
+
+    for position in positions:
+        icon = '🟢' if position.pnl > 0 else '🔴' if position.pnl < 0 else ''
+        button = InlineKeyboardButton(
+            f'{icon} {position.description}', callback_data=position.description
+        )
+        keyboard.insert(button)
 
     return keyboard
