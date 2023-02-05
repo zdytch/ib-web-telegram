@@ -72,7 +72,7 @@ def _orders_from_ib(ib_orders: list[dict]) -> list[Order]:
         price = Decimal(price) if (price := ib_order.get('price')) else Decimal('0.0')
 
         order = Order(
-            description=ib_order['orderDesc'],
+            symbol=ib_order['ticker'],
             id=ib_order['orderId'],
             size=size,
             fill_size=fill_size,

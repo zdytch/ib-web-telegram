@@ -19,7 +19,8 @@ class Position(BaseModel):
 
 
 class Order(BaseModel):
-    description: str
+    description: str = ''
+    symbol: str
     id: int
     size: int
     fill_size: int
@@ -27,3 +28,17 @@ class Order(BaseModel):
     side: str
     status: str
     price: Decimal
+
+    @root_validator()
+    def generate_description(cls, values):
+        price = price if (price := values['price']) else ''
+
+        values['description'] = (
+            f'{values["symbol"]} '
+            f'{values["side"]} '
+            f'{values["size"]} '
+            f'{values["type"]} '
+            f'{price}'
+        )
+
+        return values
