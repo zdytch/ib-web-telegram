@@ -10,15 +10,10 @@ def run_tg_bot() -> None:
     bot = Bot(token=TELEGRAM_TOKEN, parse_mode=types.ParseMode.HTML)
     dp = Dispatcher(bot)
 
-    message_handlers = {
-        'start': handlers.start,
-        # TODO "help": handlers.help_,
-        'positions': handlers.positions,
-        'orders': handlers.orders,
-        '': handlers.unknown_message,
-    }
-    for command, handler in message_handlers.items():
-        dp.register_message_handler(handler, commands=[command])
+    dp.register_message_handler(handlers.start, commands=['start'])  # TODO 'help'
+    dp.register_message_handler(handlers.positions, commands=['positions'])
+    dp.register_message_handler(handlers.orders, commands=['orders'])
+    dp.register_message_handler(handlers.unknown_message)
 
     dp.register_callback_query_handler(handlers.inline_callback)
 
