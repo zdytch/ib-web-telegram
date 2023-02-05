@@ -9,7 +9,7 @@ from aiogram.types import (
     ParseMode,
 )
 from ib_connector import get_positions, get_orders
-from templates import render_position, render_order
+from templates import render_template
 from schemas import Position, Order
 from datetime import datetime, timedelta
 from settings import TELEGRAM_TOKEN
@@ -65,10 +65,10 @@ async def unknown_message(message: Message):
 @dp.callback_query_handler()
 async def inline_callback(callback: CallbackQuery):
     if position := await _get_position(callback.data):
-        await callback.message.answer(render_position(position))
+        await callback.message.answer(render_template(position))
 
     elif order := await _get_order(int(callback.data)):
-        await callback.message.answer(render_order(order))
+        await callback.message.answer(render_template(order))
 
 
 async def _get_position_list() -> list[Position]:
