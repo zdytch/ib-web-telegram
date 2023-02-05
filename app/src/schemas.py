@@ -16,3 +16,14 @@ class Position(BaseModel):
         values['pnl'] = values['realized_pnl'] + values['unrealized_pnl']
 
         return values
+
+
+class Order(BaseModel):
+    description: str
+    id: int
+    size: int
+    fill_size: int
+    type: str
+    side: str
+    status: str
+    price: Decimal
