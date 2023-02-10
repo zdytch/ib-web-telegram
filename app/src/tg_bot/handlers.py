@@ -49,11 +49,11 @@ async def _unknown_message(message: Message):
     await message.delete()
 
 
-async def _position_details(callback: CallbackQuery, data: dict):
-    if position := await crud.get_position(data['id']):
+async def _position_details(callback: CallbackQuery, callback_data: dict):
+    if position := await crud.get_position(callback_data['id']):
         await callback.message.answer(templates.render_template(position))
 
 
-async def _order_details(callback: CallbackQuery, data: dict):
-    if order := await crud.get_order(int(data['id'])):
+async def _order_details(callback: CallbackQuery, callback_data: dict):
+    if order := await crud.get_order(int(callback_data['id'])):
         await callback.message.answer(templates.render_template(order))
