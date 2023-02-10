@@ -1,6 +1,12 @@
+from aiogram import Dispatcher
 from aiogram.types import Message
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.dispatcher.handler import CancelHandler
+from settings import TELEGRAM_USER_ID
+
+
+def setup_middlewares(dp: Dispatcher):
+    dp.middleware.setup(AccessMiddleware(TELEGRAM_USER_ID))
 
 
 class AccessMiddleware(BaseMiddleware):
