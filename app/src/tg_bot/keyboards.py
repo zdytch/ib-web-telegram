@@ -24,7 +24,7 @@ def position_list_keyboard(
         icon = '🟢' if position.pnl > 0 else '🔴' if position.pnl < 0 else ''
         button = InlineKeyboardButton(
             f'{icon} {position.description}',
-            callback_data=callback_data.new(entity='position', id=position.description),
+            callback_data=callback_data.new(entity='position', id=position.contract_id),
         )
         keyboard.insert(button)
 
@@ -39,7 +39,7 @@ def order_list_keyboard(
     for order in orders:
         button = InlineKeyboardButton(
             order.description,
-            callback_data=callback_data.new(entity='order', id=str(order.id)),
+            callback_data=callback_data.new(entity='order', id=order.id),
         )
         keyboard.row(button)
 
