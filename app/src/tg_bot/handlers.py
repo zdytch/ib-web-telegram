@@ -1,9 +1,9 @@
 from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.callback_data import CallbackData
-from services import crud
 from . import keyboards
 from . import templates
+import services
 
 _details_data = CallbackData('details', 'entity', 'id')
 
@@ -28,7 +28,7 @@ async def _start(message: Message):
 
 
 async def _positions(message: Message):
-    if positions := await crud.get_position_list():
+    if positions := await services.get_position_list():
         kb = keyboards.position_list_keyboard(positions, _details_data)
         await message.answer(f'Total Positions: {len(positions)}', reply_markup=kb)
 
@@ -37,7 +37,7 @@ async def _positions(message: Message):
 
 
 async def _orders(message: Message):
-    if orders := await crud.get_order_list():
+    if orders := await services.get_order_list():
         kb = keyboards.order_list_keyboard(orders, _details_data)
         await message.answer(f'Total Orders: {len(orders)}', reply_markup=kb)
 
@@ -50,10 +50,10 @@ async def _unknown_message(message: Message):
 
 
 async def _position_details(callback: CallbackQuery, callback_data: dict):
-    if position := await crud.get_position(callback_data['id']):
+    if position := await services.get_position(int(callback_data['id'])):
         await callback.message.answer(templates.render_template(position))
 
 
 async def _order_details(callback: CallbackQuery, callback_data: dict):
-    if order := await crud.get_order(int(callback_data['id'])):
+    if order := await services.get_order(int(callback_data['id'])):
         await callback.message.answer(templates.render_template(order))
