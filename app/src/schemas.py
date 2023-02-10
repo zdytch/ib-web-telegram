@@ -3,6 +3,7 @@ from decimal import Decimal
 
 
 class Position(BaseModel):
+    contract_id: int
     description: str
     size: int
     market_price: Decimal

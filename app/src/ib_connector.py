@@ -26,6 +26,13 @@ async def get_positions() -> list[Position]:
     return positions
 
 
+async def get_position(contract_id: int) -> Position | None:
+    return next(
+        (p for p in await get_positions() if p.contract_id == contract_id),
+        None,
+    )
+
+
 async def get_orders() -> list[Order]:
     orders = []
 
@@ -45,11 +52,19 @@ async def get_orders() -> list[Order]:
     return orders
 
 
+async def get_order(id: int) -> Order | None:
+    return next(
+        (o for o in await get_orders() if o.id == id),
+        None,
+    )
+
+
 def _positions_from_ib(ib_positions: list[dict]) -> list[Position]:
     positions = []
 
     for ib_position in ib_positions:
         position = Position(
+            contract_id=ib_position['conid'],
             description=ib_position['contractDesc'],
             size=int(ib_position['position']),
             market_price=Decimal(str(round(ib_position['mktPrice'], 2))),
