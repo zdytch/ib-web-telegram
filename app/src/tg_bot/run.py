@@ -1,14 +1,14 @@
 from aiogram import Bot, Dispatcher, executor, types
 from . import handlers
-from settings import TELEGRAM_TOKEN
+from . import middlewares
+from settings import TELEGRAM_TOKEN, TELEGRAM_USER_ID
 
 
 def run_tg_bot() -> None:
-    if not TELEGRAM_TOKEN:
-        exit()
-
     bot = Bot(token=TELEGRAM_TOKEN, parse_mode=types.ParseMode.HTML)
     dp = Dispatcher(bot)
+
+    dp.middleware.setup(middlewares.AccessMiddleware(TELEGRAM_USER_ID))
 
     dp.register_message_handler(handlers.start, commands=['start'])  # TODO 'help'
     dp.register_message_handler(handlers.positions, commands=['positions'])
