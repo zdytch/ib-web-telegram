@@ -1,7 +1,8 @@
 === <b> {{ schema.description }} </b> ===
 <b>Symbol:</b> {{ schema.symbol }}
-<b>Side:</b> {{ schema.side }}
+<b>Side:</b> {{ schema.side.value }}
 <b>Size:</b> {{ schema.size }}
 <b>Fill Size:</b> {{ schema.fill_size }}
-<b>Type:</b> {{ schema.type }}
+<b>Status:</b> {{ schema.status.value }}
+<b>Type:</b> {{ schema.type.value }}
 {% if schema.price %}<b>Price:</b> {{ schema.price }} {% endif %}
