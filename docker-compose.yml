@@ -21,5 +21,5 @@ services:
     container_name: bot-ib
     image: voyz/ibeam
     volumes:
-      - ./ib:/srv/inputs
+      - ./ib/conf.yaml:/srv/inputs/conf.yaml
     restart: unless-stopped
