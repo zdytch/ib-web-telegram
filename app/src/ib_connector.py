@@ -39,9 +39,11 @@ async def get_orders() -> list[Order]:
     try:
         async with AsyncClient(verify=False) as client:
             # TODO: Investigate
-            await client.get(f'{IB_URL_BASE}/portfolio/accounts')
+            await client.get(f'{IB_URL_BASE}/iserver/accounts')
 
-            response = await client.get(f'{IB_URL_BASE}/iserver/account/orders')
+            response = await client.get(
+                f'{IB_URL_BASE}/iserver/account/orders?Filters=pending_submit,pre_submitted,submitted'
+            )
 
         if response.status_code == codes.OK:
             orders = _orders_from_ib(response.json()['orders'])
@@ -58,7 +60,7 @@ async def get_order(id: int) -> Order | None:
     try:
         async with AsyncClient(verify=False) as client:
             # TODO: Investigate
-            await client.get(f'{IB_URL_BASE}/portfolio/accounts')
+            await client.get(f'{IB_URL_BASE}/iserver/accounts')
 
             response = await client.get(
                 f'{IB_URL_BASE}/iserver/account/order/status/{id}'
@@ -71,6 +73,30 @@ async def get_order(id: int) -> Order | None:
         logger.debug(error)
 
     return order
+
+
+async def cancel_order(id: int) -> None:
+    try:
+        async with AsyncClient(verify=False) as client:
+            # TODO: Investigate
+            await client.get(f'{IB_URL_BASE}/iserver/accounts')
+
+            response = await client.delete(
+                f'{IB_URL_BASE}/iserver/account/DU1692823/order/{id}'
+            )
+
+        if response.status_code == codes.OK:
+            pass
+
+    except HTTPError as error:
+        logger.debug(error)
+
+
+async def cancel_all_orders() -> None:
+    orders = await get_orders()
+
+    for order in orders:
+        await cancel_order(order.id)
 
 
 def _positions_from_ib(ib_positions: list[dict]) -> list[Position]:

@@ -16,3 +16,11 @@ async def get_order_list() -> list[Order]:
 
 async def get_order(id: int) -> Order | None:
     return await ib_connector.get_order(id)
+
+
+async def cancel_order(id: int) -> None:
+    return await ib_connector.cancel_order(id)
+
+
+async def cancel_all_orders() -> None:
+    return await ib_connector.cancel_all_orders()
