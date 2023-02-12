@@ -77,8 +77,10 @@ async def _view_order(callback: CallbackQuery, callback_data: dict):
 async def _cancel_order(callback: CallbackQuery, callback_data: dict):
     if (order_id := callback_data['id']) == 'all':
         await services.cancel_all_orders()
+        await callback.message.answer('All orders cancelled')
 
     else:
         await services.cancel_order(int(order_id))
+        await callback.message.answer('Order cancelled')
 
-    await callback.message.answer(f'Cancel order {callback_data["id"]}')
+    await _orders(callback.message)
