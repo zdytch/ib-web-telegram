@@ -5,7 +5,8 @@ from . import keyboards
 from . import templates
 import services
 
-_details_data = CallbackData('details', 'entity', 'id')
+_position_id_action = CallbackData('position', 'id', 'action')
+_order_id_action = CallbackData('order', 'id', 'action')
 
 
 def setup_handlers(dp: Dispatcher):
@@ -15,10 +16,16 @@ def setup_handlers(dp: Dispatcher):
     dp.register_message_handler(_unknown_message)
 
     dp.register_callback_query_handler(
-        _position_details, _details_data.filter(entity='position')
+        _view_position, _position_id_action.filter(action='view')
     )
     dp.register_callback_query_handler(
-        _order_details, _details_data.filter(entity='order')
+        _close_position, _position_id_action.filter(action='delete')
+    )
+    dp.register_callback_query_handler(
+        _view_order, _order_id_action.filter(action='view')
+    )
+    dp.register_callback_query_handler(
+        _cancel_order, _order_id_action.filter(action='delete')
     )
 
 
@@ -29,7 +36,7 @@ async def _start(message: Message):
 
 async def _positions(message: Message):
     if positions := await services.get_position_list():
-        kb = keyboards.position_list_keyboard(positions, _details_data)
+        kb = keyboards.position_list_keyboard(positions, _position_id_action)
         await message.answer(f'Total Positions: {len(positions)}', reply_markup=kb)
 
     else:
@@ -38,7 +45,7 @@ async def _positions(message: Message):
 
 async def _orders(message: Message):
     if orders := await services.get_order_list():
-        kb = keyboards.order_list_keyboard(orders, _details_data)
+        kb = keyboards.order_list_keyboard(orders, _order_id_action)
         await message.answer(f'Total Orders: {len(orders)}', reply_markup=kb)
 
     else:
@@ -49,11 +56,31 @@ async def _unknown_message(message: Message):
     await message.delete()
 
 
-async def _position_details(callback: CallbackQuery, callback_data: dict):
+async def _view_position(callback: CallbackQuery, callback_data: dict):
     if position := await services.get_position(int(callback_data['id'])):
-        await callback.message.answer(templates.render_template(position))
+        kb = keyboards.position_view_keyboard(position, _position_id_action)
+        await callback.message.answer(
+            templates.render_template(position), reply_markup=kb
+        )
 
 
-async def _order_details(callback: CallbackQuery, callback_data: dict):
+async def _close_position(callback: CallbackQuery, callback_data: dict):
+    await callback.message.answer(f'Close position {callback_data["id"]}')
+
+
+async def _view_order(callback: CallbackQuery, callback_data: dict):
     if order := await services.get_order(int(callback_data['id'])):
-        await callback.message.answer(templates.render_template(order))
+        kb = keyboards.order_view_keyboard(order, _order_id_action)
+        await callback.message.answer(templates.render_template(order), reply_markup=kb)
+
+
+async def _cancel_order(callback: CallbackQuery, callback_data: dict):
+    if (order_id := callback_data['id']) == 'all':
+        await services.cancel_all_orders()
+        await callback.message.answer('All orders cancelled')
+
+    else:
+        await services.cancel_order(int(order_id))
+        await callback.message.answer('Order cancelled')
+
+    await _orders(callback.message)

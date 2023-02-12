@@ -18,15 +18,34 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
 def position_list_keyboard(
     positions: list[Position], callback_data: CallbackData
 ) -> InlineKeyboardMarkup:
-    keyboard = InlineKeyboardMarkup(3, resize_keyboard=True)
+    keyboard = InlineKeyboardMarkup(3)
+    close_all_button = InlineKeyboardButton(
+        'Close All Positions',
+        callback_data=callback_data.new(id='all', action='delete'),
+    )
 
     for position in positions:
         icon = '🟢' if position.pnl > 0 else '🔴' if position.pnl < 0 else ''
         button = InlineKeyboardButton(
             f'{icon} {position.description}',
-            callback_data=callback_data.new(entity='position', id=position.contract_id),
+            callback_data=callback_data.new(id=position.contract_id, action='view'),
         )
         keyboard.insert(button)
+
+    keyboard.row(close_all_button)
+
+    return keyboard
+
+
+def position_view_keyboard(
+    position: Position, callback_data: CallbackData
+) -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(1)
+    close_button = InlineKeyboardButton(
+        'Close Position',
+        callback_data=callback_data.new(id=position.contract_id, action='delete'),
+    )
+    keyboard.row(close_button)
 
     return keyboard
 
@@ -34,13 +53,32 @@ def position_list_keyboard(
 def order_list_keyboard(
     orders: list[Order], callback_data: CallbackData
 ) -> InlineKeyboardMarkup:
-    keyboard = InlineKeyboardMarkup(1, resize_keyboard=True)
+    keyboard = InlineKeyboardMarkup(1)
+    cancel_all_button = InlineKeyboardButton(
+        'Cancel All Orders',
+        callback_data=callback_data.new(id='all', action='delete'),
+    )
 
     for order in orders:
         button = InlineKeyboardButton(
             order.description,
-            callback_data=callback_data.new(entity='order', id=order.id),
+            callback_data=callback_data.new(id=order.id, action='view'),
         )
         keyboard.row(button)
+
+    keyboard.row(cancel_all_button)
+
+    return keyboard
+
+
+def order_view_keyboard(
+    order: Order, callback_data: CallbackData
+) -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(1)
+    close_button = InlineKeyboardButton(
+        'Cancel Order',
+        callback_data=callback_data.new(id=order.id, action='delete'),
+    )
+    keyboard.row(close_button)
 
     return keyboard

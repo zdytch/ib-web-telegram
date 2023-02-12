@@ -1,8 +1,13 @@
+from asyncio import sleep
 from httpx import AsyncClient, HTTPError, codes
 from schemas import Position, Order, Side, OrderStatus, OrderType
 from decimal import Decimal
 from loguru import logger
 from settings import IB_URL_BASE
+
+
+class IBConnectorError(Exception):
+    pass
 
 
 async def get_positions() -> list[Position]:
@@ -34,43 +39,68 @@ async def get_position(contract_id: int) -> Position | None:
 
 
 async def get_orders() -> list[Order]:
-    orders = []
+    '''
+    https://interactivebrokers.github.io/cpwebapi/use-cases
+    Similarly to market data snapshots, order updates retrieved via the
+    /iserver/account/orders endpoints will require two calls to the server before
+    meaningful data is returned. The first call creates a subscription to the order
+    updates, with the second call returning the actual data. Please allow up to 5 seconds
+    for the order updates subscription to be created before making the second call.
+    '''
 
-    try:
-        async with AsyncClient(verify=False) as client:
-            # TODO: Investigate
-            await client.get(f'{IB_URL_BASE}/portfolio/accounts')
+    data = await _send_request('GET', '/iserver/account/orders')
 
-            response = await client.get(f'{IB_URL_BASE}/iserver/account/orders')
+    if isinstance(data, dict) and not data['snapshot']:
+        await sleep(2)
 
-        if response.status_code == codes.OK:
-            orders = _orders_from_ib(response.json()['orders'])
+        data = await _send_request('GET', '/iserver/account/orders')
 
-    except HTTPError as error:
-        logger.debug(error)
+    if isinstance(data, dict):
+        return _orders_from_ib(data['orders'], (OrderStatus.SUBMITTED,))
 
-    return orders
+    else:
+        raise IBConnectorError(f'Cannot get order list, wrong value returned: {data}')
 
 
 async def get_order(id: int) -> Order | None:
-    order = None
+    data = await _send_request('GET', f'/iserver/account/order/status/{id}')
 
+    if isinstance(data, dict):
+        return _order_from_ib(data) if not data.get('error') else None
+
+    else:
+        raise IBConnectorError(f'Cannot get order, wrong value returned: {data}')
+
+
+async def cancel_order(id: int) -> None:
+    '''
+    https://interactivebrokers.github.io/cpwebapi/endpoints
+    Cancels an open order. Must call /iserver/accounts endpoint prior to cancelling an order.
+    Use /iservers/account/orders endpoint to review open-order(s) and get latest order status.
+    '''
+    await _send_request('GET', '/iserver/accounts')
+
+    await _send_request('DELETE', f'/iserver/account/DU1692823/order/{id}')
+
+
+async def cancel_all_orders() -> None:
+    orders = await get_orders()
+
+    for order in orders:
+        await cancel_order(order.id)
+
+
+async def _send_request(method: str, endpoint: str, params: dict = {}) -> dict | list:
     try:
         async with AsyncClient(verify=False) as client:
-            # TODO: Investigate
-            await client.get(f'{IB_URL_BASE}/portfolio/accounts')
+            r = await client.request(method, f'{IB_URL_BASE}{endpoint}', params=params)
 
-            response = await client.get(
-                f'{IB_URL_BASE}/iserver/account/order/status/{id}'
-            )
-
-        if response.status_code == codes.OK:
-            order = _order_from_ib(response.json())
+        return r.json()
 
     except HTTPError as error:
-        logger.debug(error)
+        logger.error(error)
 
-    return order
+        raise IBConnectorError()
 
 
 def _positions_from_ib(ib_positions: list[dict]) -> list[Position]:
@@ -109,26 +139,27 @@ def _order_from_ib(ib_order: dict) -> Order:
     )
 
 
-def _orders_from_ib(ib_orders: list[dict]) -> list[Order]:
+def _orders_from_ib(ib_orders: list[dict], statuses: tuple[OrderStatus]) -> list[Order]:
     orders = []
 
     for ib_order in ib_orders:
-        fill_size = int(ib_order['filledQuantity'])
-        remaining_size = int(ib_order['remainingQuantity'])
-        size = fill_size + remaining_size
-        price = Decimal(p) if (p := ib_order.get('price')) else Decimal('0.0')
+        if (status := _order_status_from_ib(ib_order['status'])) in statuses:
+            fill_size = int(ib_order['filledQuantity'])
+            remaining_size = int(ib_order['remainingQuantity'])
+            size = fill_size + remaining_size
+            price = Decimal(p) if (p := ib_order.get('price')) else Decimal('0.0')
 
-        order = Order(
-            id=ib_order['orderId'],
-            symbol=ib_order['ticker'],
-            size=size,
-            fill_size=fill_size,
-            side=_side_from_ib(ib_order['side']),
-            status=_order_status_from_ib(ib_order['status']),
-            type=_order_type_from_ib(ib_order['orderType']),
-            price=price,
-        )
-        orders.append(order)
+            order = Order(
+                id=ib_order['orderId'],
+                symbol=ib_order['ticker'],
+                size=size,
+                fill_size=fill_size,
+                side=_side_from_ib(ib_order['side']),
+                status=status,
+                type=_order_type_from_ib(ib_order['orderType']),
+                price=price,
+            )
+            orders.append(order)
 
     return orders
 
@@ -157,6 +188,9 @@ def _order_status_from_ib(ib_status: str) -> OrderStatus:
     except ValueError:
         if ib_status in ('PendingSubmit', 'PreSubmitted'):
             status = OrderStatus.SUBMITTED
+
+        elif ib_status in ('PendingCancel', 'Inactive'):
+            status = OrderStatus.CANCELLED
 
         else:
             raise ValueError(
