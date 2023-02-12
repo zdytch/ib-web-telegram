@@ -116,7 +116,7 @@ def _orders_from_ib(ib_orders: list[dict]) -> list[Order]:
         fill_size = int(ib_order['filledQuantity'])
         remaining_size = int(ib_order['remainingQuantity'])
         size = fill_size + remaining_size
-        price = Decimal(price) if (price := ib_order.get('price')) else Decimal('0.0')
+        price = Decimal(p) if (p := ib_order.get('price')) else Decimal('0.0')
 
         order = Order(
             id=ib_order['orderId'],
