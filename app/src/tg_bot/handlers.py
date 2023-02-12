@@ -5,7 +5,8 @@ from . import keyboards
 from . import templates
 import services
 
-_details_data = CallbackData('details', 'entity', 'id')
+_position_id_action = CallbackData('position', 'id', 'action')
+_order_id_action = CallbackData('order', 'id', 'action')
 
 
 def setup_handlers(dp: Dispatcher):
@@ -15,10 +16,10 @@ def setup_handlers(dp: Dispatcher):
     dp.register_message_handler(_unknown_message)
 
     dp.register_callback_query_handler(
-        _position_details, _details_data.filter(entity='position')
+        _position_details, _position_id_action.filter(action='view')
     )
     dp.register_callback_query_handler(
-        _order_details, _details_data.filter(entity='order')
+        _order_details, _order_id_action.filter(action='view')
     )
 
 
@@ -29,7 +30,7 @@ async def _start(message: Message):
 
 async def _positions(message: Message):
     if positions := await services.get_position_list():
-        kb = keyboards.position_list_keyboard(positions, _details_data)
+        kb = keyboards.position_list_keyboard(positions, _position_id_action)
         await message.answer(f'Total Positions: {len(positions)}', reply_markup=kb)
 
     else:
@@ -38,7 +39,7 @@ async def _positions(message: Message):
 
 async def _orders(message: Message):
     if orders := await services.get_order_list():
-        kb = keyboards.order_list_keyboard(orders, _details_data)
+        kb = keyboards.order_list_keyboard(orders, _order_id_action)
         await message.answer(f'Total Orders: {len(orders)}', reply_markup=kb)
 
     else:
