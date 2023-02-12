@@ -48,20 +48,15 @@ async def get_orders() -> list[Order]:
     for the order updates subscription to be created before making the second call.
     '''
 
-    data = await _send_request(
-        'GET',
-        '/iserver/account/orders',
-        {'Filters': 'pending_submit,pre_submitted,submitted'},
-    )
+    data = await _send_request('GET', '/iserver/account/orders')
 
     if isinstance(data, dict) and not data['snapshot']:
-        await sleep(1)
+        await sleep(2)
 
-        # TODO Recursion
-        data = await get_orders()
+        data = await _send_request('GET', '/iserver/account/orders')
 
     if isinstance(data, dict):
-        return _orders_from_ib(data['orders'])
+        return _orders_from_ib(data['orders'], (OrderStatus.SUBMITTED,))
 
     else:
         raise IBConnectorError(f'Cannot get order list, wrong value returned: {data}')
@@ -144,26 +139,27 @@ def _order_from_ib(ib_order: dict) -> Order:
     )
 
 
-def _orders_from_ib(ib_orders: list[dict]) -> list[Order]:
+def _orders_from_ib(ib_orders: list[dict], statuses: tuple[OrderStatus]) -> list[Order]:
     orders = []
 
     for ib_order in ib_orders:
-        fill_size = int(ib_order['filledQuantity'])
-        remaining_size = int(ib_order['remainingQuantity'])
-        size = fill_size + remaining_size
-        price = Decimal(p) if (p := ib_order.get('price')) else Decimal('0.0')
+        if (status := _order_status_from_ib(ib_order['status'])) in statuses:
+            fill_size = int(ib_order['filledQuantity'])
+            remaining_size = int(ib_order['remainingQuantity'])
+            size = fill_size + remaining_size
+            price = Decimal(p) if (p := ib_order.get('price')) else Decimal('0.0')
 
-        order = Order(
-            id=ib_order['orderId'],
-            symbol=ib_order['ticker'],
-            size=size,
-            fill_size=fill_size,
-            side=_side_from_ib(ib_order['side']),
-            status=_order_status_from_ib(ib_order['status']),
-            type=_order_type_from_ib(ib_order['orderType']),
-            price=price,
-        )
-        orders.append(order)
+            order = Order(
+                id=ib_order['orderId'],
+                symbol=ib_order['ticker'],
+                size=size,
+                fill_size=fill_size,
+                side=_side_from_ib(ib_order['side']),
+                status=status,
+                type=_order_type_from_ib(ib_order['orderType']),
+                price=price,
+            )
+            orders.append(order)
 
     return orders
 
@@ -192,6 +188,9 @@ def _order_status_from_ib(ib_status: str) -> OrderStatus:
     except ValueError:
         if ib_status in ('PendingSubmit', 'PreSubmitted'):
             status = OrderStatus.SUBMITTED
+
+        elif ib_status in ('PendingCancel', 'Inactive'):
+            status = OrderStatus.CANCELLED
 
         else:
             raise ValueError(
