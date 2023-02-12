@@ -19,6 +19,10 @@ def position_list_keyboard(
     positions: list[Position], callback_data: CallbackData
 ) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(3, resize_keyboard=True)
+    close_all_button = InlineKeyboardButton(
+        'Close All Positions',
+        callback_data=callback_data.new(id='all', action='delete'),
+    )
 
     for position in positions:
         icon = '🟢' if position.pnl > 0 else '🔴' if position.pnl < 0 else ''
@@ -28,6 +32,8 @@ def position_list_keyboard(
         )
         keyboard.insert(button)
 
+    keyboard.row(close_all_button)
+
     return keyboard
 
 
@@ -35,6 +41,10 @@ def order_list_keyboard(
     orders: list[Order], callback_data: CallbackData
 ) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(1, resize_keyboard=True)
+    cancel_all_button = InlineKeyboardButton(
+        'Cancel All Orders',
+        callback_data=callback_data.new(id='all', action='delete'),
+    )
 
     for order in orders:
         button = InlineKeyboardButton(
@@ -42,5 +52,7 @@ def order_list_keyboard(
             callback_data=callback_data.new(id=order.id, action='view'),
         )
         keyboard.row(button)
+
+    keyboard.row(cancel_all_button)
 
     return keyboard

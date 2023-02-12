@@ -16,10 +16,16 @@ def setup_handlers(dp: Dispatcher):
     dp.register_message_handler(_unknown_message)
 
     dp.register_callback_query_handler(
-        _position_details, _position_id_action.filter(action='view')
+        _view_position, _position_id_action.filter(action='view')
     )
     dp.register_callback_query_handler(
-        _order_details, _order_id_action.filter(action='view')
+        _close_position, _position_id_action.filter(action='delete')
+    )
+    dp.register_callback_query_handler(
+        _view_order, _order_id_action.filter(action='view')
+    )
+    dp.register_callback_query_handler(
+        _cancel_order, _order_id_action.filter(action='delete')
     )
 
 
@@ -50,11 +56,19 @@ async def _unknown_message(message: Message):
     await message.delete()
 
 
-async def _position_details(callback: CallbackQuery, callback_data: dict):
+async def _view_position(callback: CallbackQuery, callback_data: dict):
     if position := await services.get_position(int(callback_data['id'])):
         await callback.message.answer(templates.render_template(position))
 
 
-async def _order_details(callback: CallbackQuery, callback_data: dict):
+async def _close_position(callback: CallbackQuery, callback_data: dict):
+    await callback.message.answer(f'Close position {callback_data["id"]}')
+
+
+async def _view_order(callback: CallbackQuery, callback_data: dict):
     if order := await services.get_order(int(callback_data['id'])):
         await callback.message.answer(templates.render_template(order))
+
+
+async def _cancel_order(callback: CallbackQuery, callback_data: dict):
+    await callback.message.answer(f'Cancel order {callback_data["id"]}')
