@@ -58,7 +58,10 @@ async def _unknown_message(message: Message):
 
 async def _view_position(callback: CallbackQuery, callback_data: dict):
     if position := await services.get_position(int(callback_data['id'])):
-        await callback.message.answer(templates.render_template(position))
+        kb = keyboards.position_view_keyboard(position, _position_id_action)
+        await callback.message.answer(
+            templates.render_template(position), reply_markup=kb
+        )
 
 
 async def _close_position(callback: CallbackQuery, callback_data: dict):
@@ -67,7 +70,8 @@ async def _close_position(callback: CallbackQuery, callback_data: dict):
 
 async def _view_order(callback: CallbackQuery, callback_data: dict):
     if order := await services.get_order(int(callback_data['id'])):
-        await callback.message.answer(templates.render_template(order))
+        kb = keyboards.order_view_keyboard(order, _order_id_action)
+        await callback.message.answer(templates.render_template(order), reply_markup=kb)
 
 
 async def _cancel_order(callback: CallbackQuery, callback_data: dict):
