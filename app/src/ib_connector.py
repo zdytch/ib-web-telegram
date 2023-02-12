@@ -123,7 +123,7 @@ def _orders_from_ib(ib_orders: list[dict]) -> list[Order]:
             symbol=ib_order['ticker'],
             size=size,
             fill_size=fill_size,
-            side=Side(ib_order['side']),
+            side=_side_from_ib(ib_order['side']),
             status=_order_status_from_ib(ib_order['status']),
             type=_order_type_from_ib(ib_order['orderType']),
             price=price,
@@ -134,42 +134,47 @@ def _orders_from_ib(ib_orders: list[dict]) -> list[Order]:
 
 
 def _side_from_ib(ib_side: str) -> Side:
-    if ib_side == 'B':
-        status = Side.BUY
+    try:
+        side = Side(ib_side.upper())
 
-    elif ib_side == 'S':
-        status = Side.SELL
+    except ValueError:
+        if ib_side == 'B':
+            side = Side.BUY
 
-    else:
-        raise ValueError(f'Cannot recognize side, unknown value: {ib_side}')
+        elif ib_side == 'S':
+            side = Side.SELL
 
-    return status
+        else:
+            raise ValueError(f'Cannot recognize side, unknown value: {ib_side}')
+
+    return side
 
 
 def _order_status_from_ib(ib_status: str) -> OrderStatus:
-    if ib_status in ('PendingSubmit', 'PreSubmitted', 'Submitted'):
-        status = OrderStatus.SUBMITTED
+    try:
+        status = OrderStatus(ib_status.upper())
 
-    elif ib_status == 'Cancelled':
-        status = OrderStatus.CANCELLED
+    except ValueError:
+        if ib_status in ('PendingSubmit', 'PreSubmitted'):
+            status = OrderStatus.SUBMITTED
 
-    else:
-        raise ValueError(f'Cannot recognize order status, unknown value: {ib_status}')
+        else:
+            raise ValueError(
+                f'Cannot recognize order status, unknown value: {ib_status}'
+            )
 
     return status
 
 
 def _order_type_from_ib(ib_type: str) -> OrderType:
-    if ib_type in ('Limit', 'LIMIT'):
-        type = OrderType.LIMIT
+    try:
+        type = OrderType(ib_type.upper())
 
-    elif ib_type in ('Stop', 'STP'):
-        type = OrderType.STOP
+    except ValueError:
+        if ib_type == 'STP':
+            type = OrderType.STOP
 
-    elif ib_type in ('Market', 'MARKET'):
-        type = OrderType.MARKET
-
-    else:
-        raise ValueError(f'Cannot recognize order type, unknown value: {ib_type}')
+        else:
+            raise ValueError(f'Cannot recognize order type, unknown value: {ib_type}')
 
     return type
