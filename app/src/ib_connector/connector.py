@@ -85,13 +85,6 @@ async def cancel_order(id: int) -> None:
     await _send_request('DELETE', f'/iserver/account/DU1692823/order/{id}')
 
 
-async def cancel_all_orders() -> None:
-    orders = await get_orders()
-
-    for order in orders:
-        await cancel_order(order.id)
-
-
 async def submit_order(data: SubmitData) -> None:
     ib_data = util.submit_data_to_ib(data)
 

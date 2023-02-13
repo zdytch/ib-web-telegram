@@ -65,7 +65,15 @@ async def _view_position(callback: CallbackQuery, callback_data: dict):
 
 
 async def _close_position(callback: CallbackQuery, callback_data: dict):
-    await callback.message.answer(f'Close position {callback_data["id"]}')
+    if (contract_id := callback_data['id']) == 'all':
+        await services.close_all_positions()
+        await callback.message.answer('All positions closed')
+
+    else:
+        await services.close_position(int(contract_id))
+        await callback.message.answer('Position closed')
+
+    await _positions(callback.message)
 
 
 async def _view_order(callback: CallbackQuery, callback_data: dict):
