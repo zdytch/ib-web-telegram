@@ -18,19 +18,22 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
 def position_list_keyboard(
     positions: list[Position], callback_data: CallbackData
 ) -> InlineKeyboardMarkup:
-    keyboard = InlineKeyboardMarkup(3)
+    keyboard = InlineKeyboardMarkup(1)
     close_all_button = InlineKeyboardButton(
         'Close All Positions',
         callback_data=callback_data.new(id='all', action='delete'),
     )
 
     for position in positions:
-        icon = '🟢' if position.pnl > 0 else '🔴' if position.pnl < 0 else ''
+        icon = '⬆️' if position.size > 0 else '⬇️' if position.size < 0 else ''
+        size = abs(position.size)
+        pnl = f'+{position.pnl}' if position.pnl > 0 else position.pnl
+
         button = InlineKeyboardButton(
-            f'{icon} {position.description}',
+            f'{icon} {size} {position.description} ({pnl})',
             callback_data=callback_data.new(id=position.contract_id, action='view'),
         )
-        keyboard.insert(button)
+        keyboard.row(button)
 
     keyboard.row(close_all_button)
 
