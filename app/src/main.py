@@ -1,5 +1,6 @@
 from tg_bot import run_tg_bot
 from loguru import logger
+from settings import DEBUG
 
 logger.add(
     'logs/{time}.log',
@@ -11,4 +12,9 @@ logger.add(
 )
 
 if __name__ == '__main__':
+    if DEBUG:
+        import debugpy
+
+        debugpy.listen(('0.0.0.0', 5678))
+
     run_tg_bot()

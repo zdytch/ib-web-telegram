@@ -2,8 +2,12 @@ version: '3.8'
 
 services:
   trixter-app:
+    environment:
+      - DEBUG=1
     volumes:
       - ./app/src:/usr/src
+    ports:
+      - 5678:5678
 
   bot-ib:
     ports:

@@ -7,3 +7,5 @@ if not all((TELEGRAM_TOKEN, TELEGRAM_USER_ID)):
     exit('Please set TELEGRAM_TOKEN, TELEGRAM_USER_ID')
 
 IB_URL_BASE = 'https://bot-ib:5000/v1/api'
+
+DEBUG = int(os.getenv('DEBUG', 0))
