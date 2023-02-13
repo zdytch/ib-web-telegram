@@ -1,4 +1,4 @@
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, validator, root_validator
 from decimal import Decimal
 
 
@@ -11,6 +11,12 @@ class Position(BaseModel):
     unrealized_pnl: Decimal
     realized_pnl: Decimal
     pnl: Decimal = Decimal('0.0')
+
+    @validator('size')
+    def size_non_zero(cls, value):
+        assert value != 0, 'Size cannot be zero'
+
+        return value
 
     @root_validator()
     def calculate_pnl(cls, values):
