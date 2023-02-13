@@ -52,9 +52,15 @@ class Order(BaseModel):
 
 
 class SubmitData(BaseModel):
-    symbol: str
-    exchange: Exchange
+    contract_id: int
     side: Side
     size: int
     type: OrderType
-    price: Decimal
+    price: Decimal = Decimal('0.0')
+
+    @root_validator()
+    def generate_description(cls, values):
+        if values['type'] != OrderType.MARKET:
+            assert values['price'] != Decimal('0.0')
+
+        return values

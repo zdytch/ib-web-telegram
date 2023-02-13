@@ -93,11 +93,10 @@ async def cancel_all_orders() -> None:
 
 
 async def submit_order(data: SubmitData) -> None:
-    if contract_id := await get_contract_id(data.symbol, data.exchange):
-        ib_data = util.submit_data_to_ib(data, contract_id)
+    ib_data = util.submit_data_to_ib(data)
 
-        r = await _send_request('POST', '/iserver/account/DU1692823/orders', ib_data)
-        logger.debug(r)
+    r = await _send_request('POST', '/iserver/account/DU1692823/orders', ib_data)
+    logger.debug(r)
 
 
 async def get_contract_id(symbol: str, exchange: Exchange) -> int | None:

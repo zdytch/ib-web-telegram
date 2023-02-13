@@ -146,11 +146,11 @@ def contract_id_from_ib(
     return contract_id
 
 
-def submit_data_to_ib(data: SubmitData, contract_id: int) -> dict:
+def submit_data_to_ib(data: SubmitData) -> dict:
     return {
         'orders': [
             {
-                'conid': contract_id,
+                'conid': data.contract_id,
                 'orderType': order_type_to_ib(data.type),
                 'price': float(data.price),
                 'side': data.side.value,
