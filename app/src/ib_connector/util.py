@@ -1,4 +1,4 @@
-from schemas import Position, Order, Side, OrderStatus, OrderType
+from schemas import Position, Order, Side, Exchange, SubmitData, OrderStatus, OrderType
 from decimal import Decimal
 
 
@@ -111,3 +111,51 @@ def order_type_from_ib(ib_type: str) -> OrderType:
             raise ValueError(f'Cannot recognize order type, unknown value: {ib_type}')
 
     return type
+
+
+def order_type_to_ib(type: OrderType) -> str:
+    if type == OrderType.LIMIT:
+        ib_type = 'LMT'
+
+    elif type == OrderType.STOP:
+        ib_type = 'STP'
+
+    elif type == OrderType.MARKET:
+        ib_type = 'MKT'
+
+    else:
+        raise ValueError(f'Cannot recognize order type, unknown value: {type}')
+
+    return ib_type
+
+
+def contract_id_from_ib(
+    ib_instruments: dict, symbol: str, exchange: Exchange
+) -> int | None:
+    contract_id = None
+
+    for ib_instrument in ib_instruments[symbol]:
+        if not contract_id:
+            for ib_contract in ib_instrument['contracts']:
+                if ib_contract['exchange'] == exchange.value:
+                    contract_id = ib_contract['conid']
+
+                    break
+
+    return contract_id
+
+
+def submit_data_to_ib(data: SubmitData, contract_id: int) -> dict:
+    return {
+        'orders': [
+            {
+                'conid': contract_id,
+                'orderType': order_type_to_ib(data.type),
+                'price': float(data.price),
+                'side': data.side.value,
+                'quantity': float(data.size),
+                'tif': 'DAY',
+                'outsideRTH': False,
+            }
+        ]
+    }

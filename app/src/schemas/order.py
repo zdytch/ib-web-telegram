@@ -8,6 +8,11 @@ class Side(Enum):
     SELL = 'SELL'
 
 
+class Exchange(Enum):
+    NYSE = 'NYSE'
+    NASDAQ = 'NASDAQ'
+
+
 class OrderStatus(Enum):
     SUBMITTED = 'SUBMITTED'
     FILLED = 'FILLED'
@@ -44,3 +49,12 @@ class Order(BaseModel):
         )
 
         return values
+
+
+class SubmitData(BaseModel):
+    symbol: str
+    exchange: Exchange
+    side: Side
+    size: int
+    type: OrderType
+    price: Decimal
