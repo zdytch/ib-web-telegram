@@ -1,5 +1,5 @@
 from asyncio import sleep
-from httpx import AsyncClient, HTTPError, codes
+from httpx import AsyncClient, HTTPError
 from schemas import Position, Order, SubmitData, OrderStatus, Exchange
 from . import util
 from loguru import logger
@@ -11,24 +11,22 @@ class IBConnectorError(Exception):
 
 
 async def get_positions() -> list[Position]:
-    positions = []
+    '''
+    https://interactivebrokers.github.io/cpwebapi/endpoints
+    The endpoint supports paging, page's default size is 30 positions.
+    /portfolio/accounts or /portfolio/subaccounts must be called prior to this endpoint.
+    '''
+    await _send_request('GET', '/portfolio/accounts')
 
-    try:
-        async with AsyncClient(verify=False) as client:
-            # TODO: Investigate
-            # /portfolio/accounts or /portfolio/subaccounts must be called prior to this endpoint
-            # https://interactivebrokers.github.io/cpwebapi/endpoints
-            await client.get(f'{IB_URL_BASE}/portfolio/accounts')
+    ib_positions = await _send_request('GET', '/portfolio/DU1692823/positions')
 
-            response = await client.get(f'{IB_URL_BASE}/portfolio/DU1692823/positions')
+    if isinstance(ib_positions, list):
+        return util.positions_from_ib(ib_positions)
 
-        if response.status_code == codes.OK:
-            positions = util.positions_from_ib(response.json())
-
-    except HTTPError as error:
-        logger.debug(error)
-
-    return positions
+    else:
+        raise IBConnectorError(
+            f'Cannot get position list, wrong value returned: {ib_positions}'
+        )
 
 
 async def get_position(contract_id: int) -> Position | None:

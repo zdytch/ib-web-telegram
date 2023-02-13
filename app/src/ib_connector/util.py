@@ -6,7 +6,9 @@ def positions_from_ib(ib_positions: list[dict]) -> list[Position]:
     positions = []
 
     for ib_position in ib_positions:
-        if size := int(ib_position['position']) != 0:
+        size = int(ib_position['position'])
+
+        if size != 0:
             position = Position(
                 contract_id=ib_position['conid'],
                 description=ib_position['contractDesc'],
