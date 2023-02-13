@@ -12,6 +12,7 @@ loguru = "*"
 
 [dev-packages]
 debugpy = "*"
+watchdog = "*"
 black = "*"
 
 [requires]

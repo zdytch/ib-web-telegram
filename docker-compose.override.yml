@@ -8,6 +8,7 @@ services:
       - ./app/src:/usr/src
     ports:
       - 5678:5678
+    command: watchmedo auto-restart --recursive --pattern="*.py" python main.py
 
   bot-ib:
     ports:
