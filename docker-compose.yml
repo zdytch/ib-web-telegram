@@ -10,8 +10,6 @@ services:
     restart: unless-stopped
     build:
       context: ./app
-    volumes:
-      - ./app/src:/usr/src
 
   bot-ib:
     environment:

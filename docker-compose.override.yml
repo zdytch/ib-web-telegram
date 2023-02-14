@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  bot-app:
+    environment:
+      - DEBUG=1
+    volumes:
+      - ./app/src:/usr/src
+    ports:
+      - 5678:5678
+    command: watchmedo auto-restart --recursive --pattern="*.py" python main.py
+
+  bot-ib:
+    ports:
+      - 5000:5000
