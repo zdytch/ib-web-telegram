@@ -1,4 +1,7 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.11-slim-bullseye as base
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update && apt-get install -y gcc
 
@@ -9,6 +12,27 @@ RUN pip install pipenv
 COPY Pipfile .
 COPY Pipfile.lock .
 
-RUN pipenv install --system --deploy --ignore-pipfile --dev
+
+########## Production
+
+FROM base as prod
+
+RUN pipenv install --system --deploy --ignore-pipfile
+
+COPY ./src .
 
 CMD python main.py
+
+
+########## Base Dev
+
+FROM base as base-dev
+
+RUN pipenv install --system --deploy --ignore-pipfile --dev
+
+
+########## Development
+
+FROM base-dev as dev
+
+CMD watchmedo auto-restart --recursive --pattern="*.py" python main.py
