@@ -3,7 +3,7 @@ from httpx import AsyncClient, HTTPError
 from schemas import Position, Order, SubmitData, OrderStatus, Exchange
 from . import util
 from loguru import logger
-from settings import IB_URL_BASE
+from settings import IB_URL_BASE, IB_ACCOUNT
 
 
 class IBConnectorError(Exception):
@@ -18,7 +18,7 @@ async def get_positions() -> list[Position]:
     '''
     await _send_request('GET', '/portfolio/accounts')
 
-    ib_positions = await _send_request('GET', '/portfolio/DU1692823/positions')
+    ib_positions = await _send_request('GET', f'/portfolio/{IB_ACCOUNT}/positions')
 
     if isinstance(ib_positions, list):
         return util.positions_from_ib(ib_positions)
@@ -80,13 +80,13 @@ async def cancel_order(id: int) -> None:
     '''
     await _send_request('GET', '/iserver/accounts')
 
-    await _send_request('DELETE', f'/iserver/account/DU1692823/order/{id}')
+    await _send_request('DELETE', f'/iserver/account/{IB_ACCOUNT}/order/{id}')
 
 
 async def submit_order(data: SubmitData) -> None:
     ib_data = util.submit_data_to_ib(data)
 
-    r = await _send_request('POST', '/iserver/account/DU1692823/orders', ib_data)
+    r = await _send_request('POST', f'/iserver/account/{IB_ACCOUNT}/orders', ib_data)
     logger.debug(r)
 
 

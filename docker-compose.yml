@@ -6,6 +6,7 @@ services:
       - TZ=$TIME_ZONE
       - TELEGRAM_TOKEN=$TELEGRAM_TOKEN
       - TELEGRAM_USER_ID=$TELEGRAM_USER_ID
+      - IB_ACCOUNT=$IB_ACCOUNT
     container_name: bot-app
     restart: unless-stopped
     build:
