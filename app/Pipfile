@@ -12,7 +12,7 @@ loguru = "*"
 
 [dev-packages]
 debugpy = "*"
-watchdog = "*"
+watchdog = "==2.2.1"
 black = "*"
 
 [requires]
