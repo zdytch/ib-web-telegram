@@ -20,13 +20,12 @@ async def get_positions() -> list[Position]:
 
     ib_positions = await _send_request('GET', f'/portfolio/{IB_ACCOUNT}/positions')
 
-    if isinstance(ib_positions, list):
-        return util.positions_from_ib(ib_positions)
-
-    else:
+    if not isinstance(ib_positions, list):
         raise IBConnectorError(
             f'Cannot get position list, wrong value returned: {ib_positions}'
         )
+
+    return util.positions_from_ib(ib_positions)
 
 
 async def get_position(contract_id: int) -> Position | None:
@@ -53,23 +52,21 @@ async def get_orders() -> list[Order]:
 
         ib_orders = await _send_request('GET', '/iserver/account/orders')
 
-    if isinstance(ib_orders, dict):
-        return util.orders_from_ib(ib_orders['orders'], (OrderStatus.SUBMITTED,))
-
-    else:
+    if not isinstance(ib_orders, dict):
         raise IBConnectorError(
             f'Cannot get order list, wrong value returned: {ib_orders}'
         )
+
+    return util.orders_from_ib(ib_orders['orders'], (OrderStatus.SUBMITTED,))
 
 
 async def get_order(id: int) -> Order | None:
     ib_order = await _send_request('GET', f'/iserver/account/order/status/{id}')
 
-    if isinstance(ib_order, dict):
-        return util.order_from_ib(ib_order) if not ib_order.get('error') else None
-
-    else:
+    if not isinstance(ib_order, dict):
         raise IBConnectorError(f'Cannot get order, wrong value returned: {ib_order}')
+
+    return util.order_from_ib(ib_order) if not ib_order.get('error') else None
 
 
 async def cancel_order(id: int) -> None:
@@ -86,20 +83,18 @@ async def cancel_order(id: int) -> None:
 async def submit_order(data: SubmitData) -> None:
     ib_data = util.submit_data_to_ib(data)
 
-    r = await _send_request('POST', f'/iserver/account/{IB_ACCOUNT}/orders', ib_data)
-    logger.debug(r)
+    await _send_request('POST', f'/iserver/account/{IB_ACCOUNT}/orders', ib_data)
 
 
 async def get_contract_id(symbol: str, exchange: Exchange) -> int | None:
     ib_stocks = await _send_request('GET', f'/trsrv/stocks?symbols={symbol}')
 
-    if isinstance(ib_stocks, dict):
-        return util.contract_id_from_ib(ib_stocks, symbol, exchange)
-
-    else:
+    if not isinstance(ib_stocks, dict):
         raise IBConnectorError(
             f'Cannot get contract_id, wrong value returned: {ib_stocks}'
         )
+
+    return util.contract_id_from_ib(ib_stocks, symbol, exchange)
 
 
 async def _send_request(
@@ -107,11 +102,15 @@ async def _send_request(
 ) -> dict | list:
     try:
         async with AsyncClient(verify=False) as client:
-            r = await client.request(
+            response = await client.request(
                 method, f'{IB_URL_BASE}{endpoint}', json=data, params=params
             )
 
-        return r.json()
+        json = response.json()
+
+        logger.debug(json)
+
+        return json
 
     except HTTPError as error:
         logger.error(error)
