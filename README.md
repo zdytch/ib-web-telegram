@@ -41,3 +41,6 @@ In Telegram app, logged as user with permitted ID
 - Send `/positions` command to display open positions
 - Send `/orders` command to display open orders
 - Use buttons to display or cancel positions or orders
+
+## Demo
+![Demo](docs/demo.gif)
