@@ -37,7 +37,7 @@ This app connects your IB account with telegram bot. It allows:
 
 ## Usage
 In Telegram app, logged as user with permitted ID
-Send `/start` command
-Send `/positions` command to display open positions
-Send `/orders` command to display open orders
-Use buttons to display or cancel positions or orders
+- Send `/start` command
+- Send `/positions` command to display open positions
+- Send `/orders` command to display open orders
+- Use buttons to display or cancel positions or orders
